@@ -137,3 +137,36 @@ DELETE FROM january_job1
 WHERE CTID NOT IN(SELECT MIN(CTID) FROM january_job1
 GROUP BY job_id, company_id
 HAVING COUNT(*)> 1)
+
+SELECT band,
+    COUNT(*)
+FROM(SELECT job_id,
+    job_title_short,
+    salary_year_avg,
+    NTILE(5) OVER (ORDER BY salary_year_avg DESC) AS band
+FROM febuary_job
+WHERE salary_year_avg IS NOT NULL)
+GROUP BY band
+ORDER BY band 
+
+select * from(
+select j.*,
+row_number () over w as rn,
+rank () over w as rank,
+dense_rank () over w as drank
+from january_job j
+Where salary_year_avg is NOT NULL
+window w as(partition by job_title_short ORDER BY salary_year_avg desc))
+where rank < 3
+
+Select *,
+max(salary_year_avg) over(partition by job_title_short) as Max_salary
+from january_job
+Where salary_year_avg is NOT NULL
+
+select *,
+max(salary_year_avg) over(partition by job_title_short) as high_salary,
+nth_value(salary_year_avg, 2) over(partition by job_title_short order by salary_year_avg desc
+    range between unbounded preceding and unbounded following) as second_high_salary
+from january_job
+Where salary_year_avg is NOT NULL
